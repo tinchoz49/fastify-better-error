@@ -36,7 +36,8 @@ const CUSTOM_ERRORS = {
 
 const baseApp = fastify()
 
-// By doing this, we are telling TypeScript that `app` has all the properties of `baseApp` plus the ones defined in `BetterErrorPlugin`.
+// By doing this, we are telling TypeScript that `app` has all the
+// properties of `baseApp` plus the ones defined in `BetterErrorPlugin`.
 const app = /** @type {typeof baseApp & BetterErrorPlugin<typeof CUSTOM_ERRORS>} */(baseApp)
 
 await app.register(betterErrorPlugin, {
