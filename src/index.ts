@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify'
+import type { FastifySchemaValidationError, SchemaErrorDataVar } from 'fastify/types/schema.js'
 
-import createErrorBase, { type FastifyError, type FastifyErrorConstructor } from '@fastify/error'
+import createErrorBase, { type FastifyErrorConstructor } from '@fastify/error'
 import { type Static, type TSchema, Type } from '@sinclair/typebox'
 import fastifyPlugin from 'fastify-plugin'
 
@@ -72,8 +73,36 @@ interface AppError extends FastifyErrorConstructor {
   }
 }
 
-interface BadRequestError extends AppError {
-  new(...args: any[]): Omit<FastifyError, 'validation'> & { validation: ValidationItem[] }
+class ValidationError extends createError(400, 'FST_ERR_VALIDATION', '%s', {
+  description: 'A validation error occurred in the request parameters, query, or body',
+  example: {
+    message: 'params/id must match format "uuid"',
+    validation: [{
+      instancePath: '/id',
+      schemaPath: '#/properties/id/format',
+      keyword: 'format',
+      params: {
+        format: 'uuid',
+      },
+      message: 'must match format "uuid"',
+    }],
+    validationContext: 'params',
+  },
+}) {
+  static fromSchemaValidator(validation: FastifySchemaValidationError | FastifySchemaValidationError[], validationContext?: SchemaErrorDataVar | undefined) {
+    const errors = Array.isArray(validation) ? validation : [validation]
+    const firstError = errors[0]
+    const error = validationContext ? new ValidationError(`${validationContext}${firstError.instancePath} ${firstError.message}`) : new ValidationError(firstError.message)
+    error.validation = errors.map(error => ({
+      instancePath: error.instancePath,
+      schemaPath: error.schemaPath,
+      keyword: error.keyword,
+      params: error.params,
+      message: error.message ?? '',
+    }))
+    error.validationContext = validationContext
+    return error
+  }
 }
 
 interface UseErrorItem {
@@ -88,7 +117,7 @@ interface UseErrorItem {
 }
 
 const httpErrors = {
-  BadRequestError: createError(400, 'ERR_BAD_REQUEST', 'Bad Request') as BadRequestError,
+  BadRequestError: createError(400, 'ERR_BAD_REQUEST', 'Bad Request'),
   UnauthorizedError: createError(401, 'ERR_UNAUTHORIZED', 'Unauthorized'),
   PaymentRequiredError: createError(402, 'ERR_PAYMENT_REQUIRED', 'Payment Required'),
   ForbiddenError: createError(403, 'ERR_FORBIDDEN', 'Forbidden'),
@@ -131,22 +160,7 @@ const httpErrors = {
 
 const defaultErrors = {
   ...httpErrors,
-  ValidationError: createError(400, 'FST_ERR_VALIDATION', '%s', {
-    description: 'A validation error occurred in the request parameters, query, or body',
-    example: {
-      message: 'params/id must match format "uuid"',
-      validation: [{
-        instancePath: '/id',
-        schemaPath: '#/properties/id/format',
-        keyword: 'format',
-        params: {
-          format: 'uuid',
-        },
-        message: 'must match format "uuid"',
-      }],
-      validationContext: 'params',
-    },
-  }) as BadRequestError,
+  ValidationError,
 }
 
 type ErrorKeys<T extends Record<string, AppError> = {}> = keyof (typeof defaultErrors & T)
@@ -186,16 +200,6 @@ const betterError: FastifyPluginAsync<BetterErrorOptions> = async (app, options)
 
   app.setErrorHandler(function (error, request, reply) {
     if (error.validation) {
-      if (error.code === 'FST_ERR_VALIDATION') {
-        return reply.status(400).send({
-          statusCode: 400,
-          code: 'FST_ERR_VALIDATION',
-          message: error.message,
-          validation: error.validation,
-          validationContext: error.validationContext,
-        })
-      }
-
       return reply.status(400).send({
         statusCode: 400,
         code: error.code,
