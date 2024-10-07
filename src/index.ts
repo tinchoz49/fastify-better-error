@@ -275,7 +275,7 @@ export default fastifyPlugin(betterError, {
 })
 
 export interface BetterErrorPlugin<T extends Record<string, AppError> = {}> {
-  errors: typeof httpErrors & T
+  errors: typeof defaultErrors & T
   useErrors: (errors: Array<ErrorKeys<T> | AppError>) => Record<number, TSchema>
   createError: typeof createError
 }
