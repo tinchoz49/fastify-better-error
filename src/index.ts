@@ -92,7 +92,7 @@ class ValidationError extends createError(400, 'FST_ERR_VALIDATION', '%s', {
   static fromSchemaValidator(validation: FastifySchemaValidationError | FastifySchemaValidationError[], validationContext?: SchemaErrorDataVar | undefined) {
     const errors = Array.isArray(validation) ? validation : [validation]
     const firstError = errors[0]
-    const error = validationContext ? new ValidationError(`${validationContext}${firstError.instancePath} ${firstError.message}`) : new ValidationError(firstError.message)
+    const error = validationContext ? new ValidationError(`${validationContext}${firstError.instancePath} ${firstError.message}`) : new ValidationError(`${firstError.instancePath} ${firstError.message}`)
     error.validation = errors.map(error => ({
       instancePath: error.instancePath,
       schemaPath: error.schemaPath,
