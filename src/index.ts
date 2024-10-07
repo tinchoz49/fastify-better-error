@@ -8,7 +8,7 @@ const ValidationItemSchema = Type.Object({
   instancePath: Type.String({ example: '' }),
   schemaPath: Type.String({ example: 'Schema/type' }),
   keyword: Type.String({ example: 'type' }),
-  params: Type.Record(Type.String(), Type.Any()),
+  params: Type.Record(Type.String(), Type.Unknown()),
   message: Type.String({ example: 'must be object' }),
 })
 
