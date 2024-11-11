@@ -175,13 +175,20 @@ export function createError(statusCode: number, code: string, message: string, o
     validationContext?: string
   }
 }): AppError {
-  const error = createErrorBase(code, message, statusCode) as AppError
-  error.statusCode = statusCode
-  error.code = code
-  error.message = message
-  error.description = options?.description
-  error.example = options?.example
-  return error
+  return class extends createErrorBase(code, message, statusCode) {
+    static statusCode = statusCode
+    static code = code
+    static message = message
+    static description = options?.description
+    static example = options?.example
+
+    constructor(userMessage: string) {
+      super(userMessage)
+      if (!message.includes('%')) {
+        this.message = userMessage
+      }
+    }
+  } as unknown as AppError
 }
 
 export interface BetterErrorOptions {
