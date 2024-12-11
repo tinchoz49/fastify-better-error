@@ -207,21 +207,25 @@ const betterError: FastifyPluginAsync<BetterErrorOptions> = async (app, options)
 
   app.setErrorHandler(function (error, request, reply) {
     if (error.validation) {
-      return reply.status(400).send({
-        statusCode: 400,
-        code: error.code,
-        message: error.message,
-        validation: error.validation,
-        validationContext: error.validationContext,
-      })
+      return reply.status(400)
+        .header('connection', 'close')
+        .send({
+          statusCode: 400,
+          code: error.code,
+          message: error.message,
+          validation: error.validation,
+          validationContext: error.validationContext,
+        })
     }
 
     const statusCode = error.statusCode ?? 500
-    reply.status(statusCode).send({
-      statusCode,
-      code: error.code ?? httpErrorsByStatusCode[statusCode].code,
-      message: error.message,
-    })
+    reply.status(statusCode)
+      .header('connection', 'close')
+      .send({
+        statusCode,
+        code: error.code ?? httpErrorsByStatusCode[statusCode].code,
+        message: error.message,
+      })
   })
 
   app.addSchema(HttpErrorSchema)
