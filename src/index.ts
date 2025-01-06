@@ -206,6 +206,8 @@ const betterError: FastifyPluginAsync<BetterErrorOptions> = async (app, options)
   type AllErrors = typeof allErrors
 
   app.setErrorHandler(function (error, request, reply) {
+    app.log.error(error)
+
     if (error.validation) {
       return reply.status(400)
         .header('connection', 'close')
