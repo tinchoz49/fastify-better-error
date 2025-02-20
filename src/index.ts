@@ -163,7 +163,7 @@ const defaultErrors = {
   ValidationError,
 }
 
-type ErrorKeys<T extends Record<string, AppError> = {}> = keyof (typeof defaultErrors & T)
+type ErrorKeys<T extends Record<string, AppError | ErrorConstructor> = {}> = keyof (typeof defaultErrors & T)
 
 const httpErrorsByStatusCode = Object.fromEntries(Object.entries(httpErrors).map(([code, error]) => [error.statusCode, error]))
 
@@ -291,7 +291,7 @@ export default fastifyPlugin(betterError, {
   name: 'better-error',
 })
 
-export interface BetterErrorPlugin<T extends Record<string, AppError> = {}> {
+export interface BetterErrorPlugin<T extends Record<string, AppError | ErrorConstructor> = {}> {
   errors: typeof defaultErrors & T
   useErrors: (errors: Array<ErrorKeys<T> | AppError>) => Record<number, TSchema>
   createError: typeof createError
