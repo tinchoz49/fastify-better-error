@@ -62,7 +62,7 @@ const BadRequestErrorSchema = Type.Object({
 
 type ValidationItem = Static<typeof ValidationItemSchema>
 
-interface AppError extends FastifyErrorConstructor {
+type AppError<E extends { code: string, statusCode?: number } = { code: string, statusCode?: number }, T extends unknown[] = [any?, any?, any?]> = FastifyErrorConstructor<E, T> & {
   statusCode: number
   code: string
   message: string
@@ -70,7 +70,10 @@ interface AppError extends FastifyErrorConstructor {
   example?: {
     message?: string
     validation?: ValidationItem[]
+    validationContext?: string
   }
+  validation?: ValidationItem[]
+  validationContext?: string
 }
 
 class ValidationError extends createError(400, 'FST_ERR_VALIDATION', '%s', {
@@ -163,32 +166,35 @@ const defaultErrors = {
   ValidationError,
 }
 
-type ErrorKeys<T extends Record<string, AppError | ErrorConstructor> = {}> = keyof (typeof defaultErrors & T)
+type ErrorKeys<T extends Record<string, AppError> = {}> = keyof (typeof defaultErrors & T)
 
-const httpErrorsByStatusCode = Object.fromEntries(Object.entries(httpErrors).map(([code, error]) => [error.statusCode, error]))
+const httpErrorsByStatusCode = Object.fromEntries(Object.entries(httpErrors).map(([_, error]) => [error.statusCode, error]))
 
-export function createError(statusCode: number, code: string, message: string, options?: {
+export function createError<Arg extends unknown[] = [any?, any?, any?]>(statusCode: number, code: string, message: string, options?: {
+  baseError?: ErrorConstructor
   description?: string
   example?: {
     message?: string
     validation?: ValidationItem[]
     validationContext?: string
   }
-}): AppError {
-  return class extends createErrorBase(code, message, statusCode) {
+  pre?: (error: AppError<{ code: string, statusCode: number }, Arg>, ...args: Arg) => void
+}) {
+  return class extends createErrorBase(code, message, statusCode, options?.baseError) {
     static statusCode = statusCode
     static code = code
     static message = message
     static description = options?.description
     static example = options?.example
 
-    constructor(userMessage: string) {
-      super(userMessage)
-      if (!message.includes('%')) {
-        this.message = userMessage
+    constructor(...args: Arg) {
+      super(...args)
+
+      if (options?.pre) {
+        options.pre(this as unknown as AppError<{ code: string, statusCode: number }, Arg>, ...args)
       }
     }
-  } as unknown as AppError
+  } as unknown as AppError<{ code: string, statusCode: number }, Arg>
 }
 
 export interface BetterErrorOptions {
@@ -291,7 +297,7 @@ export default fastifyPlugin(betterError, {
   name: 'better-error',
 })
 
-export interface BetterErrorPlugin<T extends Record<string, AppError | ErrorConstructor> = {}> {
+export interface BetterErrorPlugin<T extends Record<string, AppError> = {}> {
   errors: typeof defaultErrors & T
   useErrors: (errors: Array<ErrorKeys<T> | AppError>) => Record<number, TSchema>
   createError: typeof createError
