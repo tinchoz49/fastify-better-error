@@ -6,7 +6,11 @@ import fastify from 'fastify'
 import betterErrorPlugin, { type BetterErrorPlugin, createError } from 'src/index.js'
 
 const CUSTOM_ERRORS = {
-  CustomError: createError(400, 'ERR_CUSTOM', 'Custom error'),
+  CustomError: createError({
+    statusCode: 400,
+    code: 'ERR_CUSTOM',
+    message: 'Custom error',
+  }),
 }
 
 async function createApp() {
@@ -18,7 +22,6 @@ async function createApp() {
 
   expectTypeOf(extendedApp).toHaveProperty('errors')
   expectTypeOf(extendedApp).toHaveProperty('useErrors')
-  expectTypeOf(extendedApp).toHaveProperty('createError')
   expectTypeOf(extendedApp.useErrors).toBeCallableWith(['NotFoundError'])
   expectTypeOf(extendedApp.useErrors).toBeCallableWith(['CustomError'])
 
