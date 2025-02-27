@@ -48,12 +48,10 @@
   },
   "dependencies": {
     "@sinclair/typebox": "^0.34.27",
-    "fastify-plugin": "^5.0.1",
-    "quick-format-unescaped": "^4.0.4"
+    "fastify-plugin": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
-    "@types/quick-format-unescaped": "^4.0.3",
     "eslint": "^9.11.1",
     "eslint-config-standard-ext": "^2.1.1",
     "expect-type": "^1.0.0",

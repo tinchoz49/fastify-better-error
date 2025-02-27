@@ -1,6 +1,6 @@
-import type { FastifySchemaValidationError, SchemaErrorDataVar } from 'fastify/types/schema.js'
+import { format } from 'node:util'
 
-import format from 'quick-format-unescaped'
+import type { FastifySchemaValidationError, SchemaErrorDataVar } from 'fastify/types/schema.js'
 
 import type { ValidationItem } from './schemas.js'
 
@@ -54,7 +54,7 @@ export class FastifyBetterError extends Error {
 
     this.statusCode = StaticClass.statusCode
     this.code = StaticClass.code
-    this.message = format(StaticClass.message, args)
+    this.message = format(StaticClass.message, ...args)
     Error.stackTraceLimit !== 0 && Error.captureStackTrace(this, StaticClass)
   }
 }
