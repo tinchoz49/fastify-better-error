@@ -1,7 +1,7 @@
 {
   "name": "fastify-better-error",
   "type": "module",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Supercharge Fastify error handling! Streamline definitions, automate schemas, and boost productivity with built-in HTTP errors and robust TypeScript support. Make errors work for you!",
   "author": {
     "name": "Martin Acosta",
