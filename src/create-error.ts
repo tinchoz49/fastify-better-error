@@ -15,6 +15,8 @@ export class FastifyBetterError extends Error {
     validationContext?: string
   }
 
+  static overrideMessage = false
+
   statusCode: number
   code: string
   message: string
@@ -54,7 +56,7 @@ export class FastifyBetterError extends Error {
 
     this.statusCode = StaticClass.statusCode
     this.code = StaticClass.code
-    this.message = format(StaticClass.message, ...args)
+    this.message = StaticClass.overrideMessage && args.length > 0 ? format(...args) : format(StaticClass.message, ...args)
     Error.stackTraceLimit !== 0 && Error.captureStackTrace(this, StaticClass)
   }
 }
