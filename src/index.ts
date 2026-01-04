@@ -1,8 +1,8 @@
-import type { TSchema } from '@sinclair/typebox'
 import type { FastifyPluginAsync } from 'fastify'
+import type { TSchema } from 'typebox'
 
-import { Type } from '@sinclair/typebox'
 import fastifyPlugin from 'fastify-plugin'
+import { Type } from 'typebox'
 
 import { createError, FastifyBetterError } from './create-error.js'
 import * as httpErrors from './https-errors.js'
@@ -126,7 +126,7 @@ const betterError: FastifyPluginAsync<BetterErrorOptions> = async (app, options)
 
     codes.forEach((items, statusCode) => {
       const schema = statusCode === 400 ? BadRequestErrorSchema : HttpErrorSchema
-      schemas[statusCode] = Type.Ref(schema.$id as string, {
+      schemas[statusCode] = Type.Ref((schema as any).$id as string, {
         'x-examples': Object.fromEntries(items.map(item => [item.code, {
           summary: item.code,
           description: item.description,

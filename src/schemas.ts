@@ -1,4 +1,4 @@
-import { type Static, Type } from '@sinclair/typebox'
+import { type Static, Type } from 'typebox'
 
 export const ValidationItemSchema = Type.Object({
   instancePath: Type.String({ example: '/name' }),
